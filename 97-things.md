@@ -13,8 +13,8 @@ Three kinds of progammers:
 
 _Libraries grew into frameworks with prescripted architectures. And as these frameworks became technology ecosystems, many of us forgot about the little language that could—Java._
 
-Need to work wit files? - _java.nio_
-Databases? - _java.sql_
+Need to work wit files? - _java.nio_\
+Databases? - _java.sql_\
 HTTP server? - _com.sun.net.httpserver_
 
 TLDR; Use Java as much as you can, don't just throw in dependencies.
@@ -42,9 +42,9 @@ If you already have tests that make assertions about strings that are longer tha
 
 Sometimes Javadoc is not enough , because you need more than API documentation, though—much more than you can fit in the package and project overview pages Javadoc offers.
 
-[AsciiDoc](https://asciidoctor.org/docs/what-is-asciidoc) is an alternative to Markdown.
-[Quick refference](https://docs.asciidoctor.org/asciidoc/latest/syntax-quick-reference/)
-There is [plugin](https://plugins.jetbrains.com/plugin/7391-asciidoc) for IntelliJ (*_.adoc_)
+[AsciiDoc](https://asciidoctor.org/docs/what-is-asciidoc) is an alternative to Markdown.\
+[Quick refference](https://docs.asciidoctor.org/asciidoc/latest/syntax-quick-reference/)\
+There is [plugin](https://plugins.jetbrains.com/plugin/7391-asciidoc) for IntelliJ (*_.adoc_)\
 Chrome [extension](https://chromewebstore.google.com/detail/asciidoctorjs-live-previe/iaalpfgpbocpdfblpnhhgllgbdbchmia)
 
 ## 4. Be Aware of Your Container Surroundings (_David Delabassee_)
@@ -62,26 +62,27 @@ With these metrics, the JVM determines important parameters such as:
 Linux Docker container support allows the JVM to rely on Linux cgroups to get the metrics of resources allocated to the **container** it runs in.
 Any JVM **older than JDK 8 update 191** is not aware that it is running within a container and **will access metrics from the host OS** and not from the container itself.
 
-The following command shows which JVM parameters are configured by the JVM ergonomics:  `java -XX:+PrintFlagsFinal -version | grep ergonomic` TODO: probaj ovo mozda
+The following command shows which JVM parameters are configured by the JVM ergonomics:  `java -XX:+PrintFlagsFinal -version | grep ergonomic`
 
 JVM container support is **enabled by default** but can be disabled by using the `-XX:-UseContainerSupport` - this way you can observe and explore the impact of JVM ergonomics with and without container support.
 
 
 ## 5. Behavior Is “Easy”;State Is Hard (_Edson Yanaga_)
 
-**inheritance** - You have class _Shape_ and other classes _Circle_, _Triangle_ that inherit properties of _Shape_.
-**encapsulation** - state cannot be changed directly, so properties are enclosed in methods  (_getters_ and _setters_)
+**inheritance** - You have class _Shape_ and other classes _Circle_, _Triangle_ that inherit properties of _Shape_.\
+**encapsulation** - state cannot be changed directly, so properties are enclosed in methods  (_getters_ and _setters_)\
 **polymorphism** - you can access objects of different types through the same interface. Two types:
 - <ins>static (compile time)</ins> - method _overloading_, operator _overloading_ (C++, Kotlin)
 - <ins>dynamic (runtime)</ins> - method _overriding_
 
 Focus here is **encapsulation**. We have state and expose API for getting and changing that state (_getters_ and _setters_).
-If our code doesn't work, bugs are 'easy' to find, but if our code seems to work but we still have bugs -> problems!
-One of the biggest problem is with **inconsistent state**
+If our code doesn't work, bugs are 'easy' to find, but if our code seems to work but we still have bugs -> problems!\
+One of the biggest problem is with **inconsistent state**\
 How to solve it? **Immutability** is the one of the possible answers
 >If we can guarantee that our objects are immutable,  we’ll never have an inconsistent state.
 
-Therefore, don’t generate your setters automatically. Take time to think about them. Do you really need that setter in your code? And if you decide that you do, perhaps because of some framework requirement, consider using an **anticorruption layer** to protect and validate your internal state after those setter interactions.
+Therefore, don’t generate your setters automatically. Take time to think about them.  
+Do you really need that setter in your code? And if you decide that you do, perhaps because of some framework requirement, consider using an **anti-corruption layer** to protect and validate your internal state after those setter interactions.
 
 
 ## 6. Benchmarking Is Hard— JMH Helps (_Michael Hunger_)
@@ -270,3 +271,197 @@ if (!latch.await(2, TimeUnit.SECONDS)) {
 ```
 - CountDownLatch is useful in many different situations. It becomes especially useful when you’re testing your concurrent code, since it allows you to make sure that all the tasks are complete before checking their results
 - CountDownLatch is very useful, but there’s one important catch: you shouldn’t use it in production code that makes use of concurrent libraries or frame‐ works, such as Kotlin’s coroutines or Spring WebFlux
+
+
+## 21. Embrace SQL Thinking (_Dean Wampler_)
+``` postgresql
+SELECT c.id, c.name, c.address, o.items 
+FROM customers c
+JOIN orders o
+ON o.customer_id = c.id
+GROUP BY c.id
+```
+this is a few lines of code in SQL that would take a lot more code in Java to achieve the same result
+
+- **We don’t need a new table for the join output, so we don’t create one.**\
+Unnecessary classes become a burden as the code
+evolves.
+
+
+- **The query is declarative.**\
+Nowhere does it tell the database **_how to do_** the query\
+Java is an imperative language,
+so we tend to write code that says what to do
+
+
+- **The domain-specific language (DSL) is well matched to the problem**\
+  DSLs can be somewhat controversial. It’s very hard to design a good one,
+  and the implementations can be messy. SQL is a data DSL. It’s quirky, but
+  its longevity is proof of how well it expresses typical data-processing
+  needs.
+
+``` java
+@Query(nativeQuery = true,
+            countQuery = """
+                    SELECT
+                        COUNT(b.id)
+                        FROM users u
+                        JOIN booking b on u.id = b.student_id
+                        WHERE u.id IN :childrenIds
+                    """,
+            value = """
+                    SELECT
+                        b.id as bookingId,
+                        u.first_name as studentName,
+                        s.abrv as subject,
+                        l.abrv as level,
+                        t.first_name as tutorFirstName,
+                        t.last_name as tutorLastName,
+                        t.email as tutorEmail,
+                        t.phone_number as tutorPhone,
+                        tut.slug as tutorSlug,
+                        b.created_at as createdAt,
+                        b.start_time as startTime,
+                        b.accepted as accepted,
+                        b.deleted as deleted,
+                        b.in_reschedule as inReschedule,
+                        b.cost as price
+                        FROM users u
+                        JOIN booking b on u.id = b.student_id
+                        JOIN users t on t.id= b.tutor_id
+                        JOIN subject s on b.subject_id = s.id
+                        JOIN level l on b.level_id = l.id
+                        JOIN tutor tut on t.id=tut.user_id
+                        WHERE u.id IN :childrenIds
+                        ORDER BY b.start_time DESC
+                    """)
+    Page<StudentBookingDetailsView> getUserBookingsDetails(List<UUID> childrenIds, Pageable pageable);
+```
+
+``` java
+public interface StudentBookingDetailsView {
+    UUID getBookingId();
+    String getStudentName();
+    String getSubject();
+    String getLevel();
+    String getTutorFirstName();
+    String getTutorLastName();
+    String getTutorSlug();
+    String getTutorEmail();
+    String getTutorPhone();
+    LocalDateTime getStartTime();
+    LocalDateTime getCreatedAt();
+    float getPrice();
+    boolean isAccepted();
+    boolean isInReschedule();
+    boolean isDeleted();
+}
+```
+
+
+## 22. Events Between Java Components (_A.Mahdy AbdelAziz_)
+
+One of the core concepts of object orientation in Java is that every class can
+be considered to be a _component_.\
+An **event** in Java is an action that **changes the state** of a component.
+
+Assume we have an `Oven` component and a `Person` component. And we want oven to prepare a meal when person is hungry.\
+There are two ways to implement this:
+1. `Oven` checks `Person` in fixed, short intervals. This annoys `Person` and is
+also expensive for `Oven` if we want it to check on multiple instances of
+   `Person`.
+2. `Person` comes with a public event, `Hungry`, to which `Oven` is subscribed.
+   Once `Hungry` is fired, `Oven` is notified and starts preparing food.
+
+In short this is [Observer design pattern](https://refactoring.guru/design-patterns/observer) 
+> I changed code example and used 'Observer' nomenclature
+
+```java
+@FunctionalInterface
+public interface HungerObserver {
+    void hungry();
+}
+```
+
+``` java
+public class Person {
+    private List<HungerObserver> hungerObservers = new ArrayList<>();
+    // rest of Person class
+    
+    public void subscribe(HungerObserver observer) {
+        hungerObservers.add(observer);
+    }
+
+    public void unsubscribe(HungerObserver observer){
+        hungerObservers.remove(observer);
+    }
+    
+    public void notifyAllHungerObservers(){   
+        hungerObservers.stream().forEach(HungerObserver::hungry);
+    }
+}
+```
+
+
+``` java
+public class Oven implements HungerObserver {
+    // variables
+    
+    @Override    
+    public void hungry(){
+        // make some food   
+    }
+}
+```
+
+``` java
+public class Main {
+   Oven oven = new Oven();
+   Person person = new Person();
+   
+   person.subscribe(oven);
+   person.notifyAllHungerObservers();
+}
+```
+
+## 23. Feedback Loops (_Liz Keogh_)
+
+Feedback is important 
+Some of notes:
+- Because I make mistakes while writing code, I work with an IDE. My
+IDE corrects me when I’m wrong.
+- Because I make mistakes in understanding the existing code, I use a statically
+typed language. The compiler corrects me when I’m wrong.
+- Because I make mistakes while thinking, I work with a pair. My pair corrects
+me when I’m wrong.
+- Because my pair is human and also makes mistakes, we write unit tests.
+Our unit tests correct us when we’re wrong.
+- Because we sometimes misunderstand our product manager and other
+  stakeholders, we showcase the system. Our stakeholders will tell us if
+  we’re wrong.
+- ...
+
+## 24. Firing on All Engines (_Michael Hunger_)
+
+Traditional Java profilers use either byte code instrumentation or sampling -> hard to understand outputs 
+
+Brendan Gregg, a performance engineer at Netflix, came up
+with **flame** graphs.
+
+A flame graph sorts and aggregates the traces up to each stack level, so that
+their count per level represents the percentage of the total time spent in that part of code.\
+Note that the left-to-right order has no
+significance; often, it’s just alphabetical sorting. The same is true for colors.\
+Only the **relative widths and stack depths are relevant**.
+
+Download here: [Project](https://github.com/async-profiler/async-profiler)\
+`./profiler.sh -d <duration> -f flamegraph.svg -s -o svg <pid> && \
+open flamegraph.svg -a "Google Chrome"`
+
+## 25. Follow the Boring Standards (_Adam Bien_)
+
+Frameworks evolve very quickly, and it has become hard to master  multiple frameworks at the same time. \
+Focusing on standards allows you to gain knowledge incrementally over time
+—an efficient way to learn.  
+Evaluating popular frameworks is exciting, but
+the gained knowledge isn’t necessarily applicable to the next “hot thing.”

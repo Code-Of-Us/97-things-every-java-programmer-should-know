@@ -272,6 +272,197 @@ if (!latch.await(2, TimeUnit.SECONDS)) {
 - CountDownLatch is useful in many different situations. It becomes especially useful when you’re testing your concurrent code, since it allows you to make sure that all the tasks are complete before checking their results
 - CountDownLatch is very useful, but there’s one important catch: you shouldn’t use it in production code that makes use of concurrent libraries or frame‐ works, such as Kotlin’s coroutines or Spring WebFlux
 
+# 16. Declarative Expression Is the Path to Parallelism
+Russel Winder
+
+- Java evolved from an imperative, object-based language to one favoring declarative expression.
+- Imperative code tells the computer what to do; declarative code expresses goals, abstracting implementation details.
+- Java 8 introduced higher-order functions, central to declarative expression.
+- Imperative example for squaring a list:
+  ```java
+  List<Integer> squareImperative(final List<Integer> datum) {
+      var result = new ArrayList<Integer>();
+      for (var i = 0; i < datum.size(); i++) {
+          result.add(i, datum.get(i) * datum.get(i));
+      }
+      return result;
+  }
+  ```
+- Declarative example using streams:
+  ```java
+  List<Integer> squareDeclarative(final List<Integer> datum) {
+      return datum.stream()
+                  .map(i -> i * i)
+                  .collect(Collectors.toList());
+  }
+  ```
+- Declarative code is easier to maintain and allows easy parallelism:
+  ```java
+  List<Integer> squareDeclarative(final List<Integer> datum) {
+      return datum.parallelStream()
+                  .map(i -> i * i)
+                  .collect(Collectors.toList());
+  }
+  ```
+- Streams provide the right abstraction for data parallelism, making parallel computations straightforward.
+
+
+# 17 Deliver Better Software, Faster
+Burk Hufnagel
+
+- **Deliver Better Software, Faster** is a guiding principle for ensuring user satisfaction and career fulfillment.
+
+- **Deliver** means:
+    - Taking responsibility beyond writing and debugging code.
+    - Understanding the process of getting code into production.
+    - Avoiding actions that hinder the process (e.g., unclear requirements).
+    - Doing actions that speed up the process (e.g., automated tests).
+
+- **Better Software** involves:
+    - Building the right thing: meeting requirements and acceptance criteria.
+    - Building the thing right: writing easily understandable code.
+    - Balancing between quick feature delivery and avoiding technical debt.
+
+- **Faster** entails:
+    - Using processes like TDD for automated tests.
+    - Regularly running unit, integration, and user acceptance tests.
+    - Automating test runs and deployment processes.
+    - Deploying changes more frequently to reduce the risk of issues and deliver benefits sooner.
+
+- Adopting this principle is challenging but rewarding, improving both user experience and professional satisfaction.
+
+
+# 18 Do You Know What Time It Is?
+Christin Gorman
+
+- Time in programming involves two aspects: seconds passing and the interaction of astronomy and politics.
+- Time representation issues arise from mixing these concepts.
+
+- **Key Concepts:**
+    - **LocalDateTime:** Represents a date and time (e.g., 1:15 p.m., October 13, 2019) without timezone information.
+    - **Instant:** A specific point on the timeline, the same globally (e.g., in Boston and Beijing).
+    - **ZonedDateTime:** A LocalDateTime combined with a TimeZone, including UTC offsets and daylight saving time (DST) rules.
+
+- **Pitfalls and Solutions:**
+    - **Future Events:** Use ZonedDateTime instead of Instant to account for potential changes in DST rules or UTC offsets.
+    - **Recurring Events:** Use ZonedDateTime for departure and Duration for flight duration to handle DST changes.
+    - **Ambiguous Times:** Handle times like 2:30 a.m. during DST transitions using methods like `ZonedDateTime.withEarlierOffsetAtOverlap()` and `ZonedDateTime.withLaterOffsetAtOverlap()` in Java, or explicit DST resolvers in Noda Time.
+
+- Good tools like java.time or Noda Time can prevent many common errors related to date and time handling.
+
+
+# 19 Don’t hIDE Your Tools
+Gail Ollis
+
+- **Essential Tool:** The most crucial tool for Java programmers is `javac`, not an IDE.
+- **Historical Context:** Programming without IDEs was common in the past, but essential tools were still indispensable.
+
+- **Case Study:**
+    - C++ programmers quickly adapted to a version control change using command-line tools.
+    - Java programmers struggled with IDE configuration, losing productivity.
+
+- **Issues with Relying Solely on IDEs:**
+    - IDEs can obscure understanding of essential tools and processes.
+    - Programmers might lose touch with the details of what their tools do.
+
+- **Advantages of Knowing Essential Tools:**
+    - **Problem Resolution:** Easier to troubleshoot and resolve issues like "it works on my machine."
+    - **Flexibility:** Simple to set different options using commands like `javac --help`.
+    - **Cross-Environment Assistance:** Easier to help others and troubleshoot when IDE tools fail.
+    - **Tool Integration:** Ability to use a wider range of tools, including scripts and Linux commands.
+    - **Real-World Testing:** Ensures code runs as it will for end users, outside of an IDE environment.
+
+- **Conclusion:**
+    - Understanding and using essential tools directly enhances mastery and troubleshooting capabilities.
+    - While IDEs offer significant benefits, balancing their use with direct tool interaction is crucial for true skill development.
+
+# 20 Don’t Vary Your Variables
+Steve Freeman
+
+- **Immutability:** Using `final` for variables simplifies reasoning about code and reduces errors.
+
+- **Assign Once:**
+    - Common mutable pattern:
+      ```java
+      Thing thing;
+      if (nextToken == MakeIt) {
+          thing = makeTheThing();
+      } else {
+          thing = new SpecialThing(dependencies);
+      }
+      thing.doSomethingUseful();
+      ```
+    - Improved with conditional expression:
+      ```java
+      final var thing = nextToken == MakeIt
+          ? makeTheThing()
+          : new SpecialThing(dependencies);
+      thing.doSomething();
+      ```
+    - Further improved by extracting to a function:
+      ```java
+      final var thing = aThingFor(nextToken);
+      thing.doSomethingUseful();
+  
+      private Thing aThingFor(Token aToken) {
+          return aToken == MakeIt
+              ? makeTheThing()
+              : new SpecialThing(dependencies);
+      }
+      ```
+    - Simplifies condition handling with a `switch` statement:
+      ```java
+      private Thing aThingFor(Token aToken) {
+          switch (aToken) {
+              case MakeIt:
+                  return makeTheThing();
+              case Special:
+                  return new SpecialThing(dependencies);
+              case Green:
+                  return mostRecentGreenThing();
+              default:
+                  return Thing.DEFAULT;
+          }
+      }
+      ```
+
+- **Localize Scope:**
+    - Avoid spreading variable assignments:
+      ```java
+      var thing = Thing.DEFAULT;
+      // lots of code to figure out nextToken
+      if (nextToken == MakeIt) {
+          thing = makeTheThing();
+      }
+      thing.doSomethingUseful();
+      ```
+    - Extract to a supporting method:
+      ```java
+      final var thing = theNextThingFrom(aStream);
+  
+      private Thing theNextThingFrom(Stream aStream) {
+          // lots of code to figure out nextToken
+          if (nextToken == MakeIt) {
+              return makeTheThing();
+          }
+          return Thing.DEFAULT;
+      }
+      ```
+    - Separate concerns further:
+      ```java
+      final var thing = aThingForToken(nextTokenFrom(aStream));
+      ```
+
+- **Streaming Approach:** Use streams for concise and clear code:
+  ```java
+  final var thing = nextTokenFrom(aStream)
+      .filter(t -> t == MakeIt)
+      .findFirst()
+      .map(t -> makeTheThing())
+      .orElse(Thing.DEFAULT);
+  ```
+
+- **Benefits of Immutability:** Encourages careful design, exposes potential bugs, and ensures clear change points in code.
 
 ## 21. Embrace SQL Thinking (_Dean Wampler_)
 ``` postgresql

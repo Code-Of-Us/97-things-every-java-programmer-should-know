@@ -982,3 +982,102 @@ public class DiskSpaceExhaustion {
 - The diverse market offers many programming language options to fit various business needs
 - Each developer should choose the best language for their specific task
 - Even if Java isn't a developer's primary language, it's considered a valuable skill due to its versatility and wide applicability
+
+## 36.Inline Thinking (_Patricia Aas_)
+
+Imagine that you need to iterate through a big array of relatively small
+objects. In Java today, you don’t really have an
+array of triangles; you have an array of pointers to triangle objects because
+regular objects in Java are “reference types,” meaning you access them
+through Java pointers/references \
+So even though the array is probably a contiguous
+section of memory, the triangle objects themselves can be anywhere
+on the Java heap. Looping through this array will be **“cache-unfriendly”**
+
+Imagine instead that the array contained the actual triangle objects, not
+pointers to them. Now they are close in memory, and looping over them is
+much more **“cache-friendly”**
+
+Object types that can be stored directly into an array like
+that are called **“value types”** or **“inline types.”**
+
+A difference between inline types and reference types is
+that you **don’t have to allocate inline types on the heap**.\
+As a bonus, objects that are not allocated on the
+Java heap **do not** need to be garbage collected.
+
+These cache-friendly behaviors are already present in Java when using socalled
+“primitive types,” like ints and chars\
+We will soon have user-defined ones, probably called “inline classes.”
+
+## 37. Interop with Kotlin (_Sebastiano Poggi_)
+
+You can call Java code in Kotlin and it just works.\
+If you don’t apply nullability annotations in Java, Kotlin
+assumes all those types have unknown nullability—they’re so-called platform
+types. If you’re certain they will never be null, you can coerce them into a
+non-null type with the !! operator or by casting them to a non-null type.
+In either case, you’ll get a crash if the value is null at runtime.  \
+When invoking Kotlin code from Java, you should find that while the majority
+of the code will work just fine, you may see quirks with some advanced
+Kotlin language features that don’t have a direct equivalent in Java.
+
+## 38. It’s Done, But… (_Jeanne Boyarsky_)
+
+How many times have you been to a stand-up, daily Scrum or status meeting
+and heard the phrase “It’s done, but...”?
+
+### 1. Communication and Clarity
+
+- Ideally your team has a definition of done. But even if they don’t, there is
+probably some expectation of what done means.\
+- Common things that aren’t done include writing tests, documentation, and
+edge cases.\
+- Don't use term **done done**
+- Be a clear communicator. If something isn’t done, don’t
+say it’s done.
+- “I coded the happy path and next I will add validation”
+- “I finished all the code—the only thing remaining is for me to update the user manual”
+- “I thought I was done and then discovered the widget doesn’t work on Tuesdays.”
+
+### 2. Perception
+
+- As soon as managers hear done, that becomes the
+perception. **The but either gets forgotten or becomes a small thing.**
+- Now you are moving on to the next thing when you didn’t finish the first
+  thing. --> **That’s where technical debt comes from!**
+
+### 3. There’s No Partial Credit for Done
+
+- Done is a binary state. It’s either done or it isn’t
+- Remember: don’t say you are done until you are done!
+
+## 39. Java Certifications: Touchstone in Technology (_Mala Gupta_)
+
+An apt metaphor would be the touchstone—the wonderstone used in ancient
+times to measure the purity of gold and other precious metals that were used
+as currency. A metal coin was rubbed against a dark siliceous stone like jasper,
+and a colorful residue would be indicative of the metal’s purity.
+
+Organizations like Oracle have defined these benchmarks in the form of professional certifications, to play the role of touchstones.
+
+Validated skills establish the credibility of an individual’s ability in programming
+in a particular language or their understanding of a platform, methodology,
+or practice to prospective employers.
+
+## 40. Java is 90's kid (_Ben Evans_)
+
+_There are only two kinds of languages: the ones people complain about and the
+ones nobody uses._ — Bjarne Stroustrup
+
+Many think that Java is old language, that you are writing instant legacy code.
+
+Through the lens of 2020 and beyond, Java is sometimes seen as a mainstream,
+middle-of-the-road language. What that narrative misses is that the
+world of software has radically changed since Java’s debut. Big ideas such as
+virtual machines, dynamic self-management, JIT compilation, and garbage
+collection are now part of the general landscape of programming languages.
+
+Though some may view Java as The Establishment, it’s really the mainstream
+that has moved to encompass the space where Java has always been. Underneath
+the veneer of enterprise respectability, Java is still a ’90s kid.

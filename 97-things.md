@@ -822,3 +822,163 @@ Improves the maintainability of code
 - Rename parts of entities with relationship names (company_person -> employee, owner, shareholder) 
 - Don’t mix up class and object names (to avoid duplicate type noise): rename a date field called dateCreated to created, and a Boolean field called isValid to valid
 - instead of a Customer called customer, use a more specific name, such as recipient when sending a notification or reviewer when posting a product review.
+
+## 31. Hey Fred, Can You Pass Me the HashMap?
+
+Here are the bullet points summarizing the content:
+
+- The choice of vocabulary in code can greatly impact its readability, maintainability, and performance.
+- Using domain-specific language and meaningful abstractions in your code can improve its quality.
+- Technical classes rarely have a place in the vocabulary of the domains we're working in.
+- The need for utility classes should be a red flag that you're missing an abstraction.
+- Using a `CompositeKey` class instead of two separate `String` parameters can make the code more expressive and easier to understand, and also improve the performance of the code.
+```java
+listOfNames.get(firstName + lastName);
+listOfNames.get(new CompositeKey(firstName, lastName))
+```
+- The author advocates for the use of domain-specific language and meaningful abstractions in your code.
+
+## 32. How to Avoid Null
+- Null is often referred to as the “billion-dollar mistake” due to the issues it can cause in code
+- Avoid initializing variables to null. Instead, declare a variable when you know what value it should hold
+- instead of doing this:
+```java
+  public String getEllipsifiedPageSummary(Path path) {
+  String summary = null;
+  Resource resource = this.resolver.resolve(path);
+  if (resource.exists()) {
+    ValueMap properties = resource.getProperties();
+    summary = properties.get("summary");
+  } else {
+    summary = "";
+  }
+  return ellipsify(summary);
+}
+```
+  Do the following:
+```java
+  public String getEllipsifiedPageSummary(Path path) {
+    var summary = getPageSummary(path);
+    return ellipsify(summary);
+}
+
+public String getPageSummary(Path path) {
+    var resource = this.resolver.resolve(path);
+    if (!resource.exists()) {
+        return "";
+    }
+    var properties = resource.getProperties();
+    return properties.get("summary");
+}
+```
+- Avoid returning null. Use `Optional<T>` instead to make your code more explicit and easier to handle when no value is produced
+- Avoid passing and receiving null parameters. If an operation can have an optional parameter, create two methods: one with the parameter and one without
+```java
+  public class ImageDrawer {
+    public void drawImage(Image original, int xCoord, int yCoord, int imgWidth, int imgHeight, ImageObserver observer) {
+        // Implementation with ImageObserver
+    }
+
+    public void drawImage(Image original, int xCoord, int yCoord, int imgWidth, int imgHeight) {
+        drawImage(original, xCoord, yCoord, imgWidth, imgHeight, null);
+    }
+}
+  
+```
+- Null is acceptable as an implementation detail of a class, i.e., the value of an attribute. The code that needs to be aware of the absence of value is contained to the same file, making it simpler to reason about and prevent null leakage
+```java
+public class UserProfile {
+    private String firstName;
+    private String lastName;
+    private String middleName; // This can be null if the user has no middle name.
+
+    public UserProfile(String firstName, String lastName, String middleName) {
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.middleName = middleName; // null is acceptable here.
+    }
+
+    public String getFullName() {
+        if (middleName == null) {
+            return firstName + " " + lastName;
+        }
+        return firstName + " " + middleName + " " + lastName;
+    }
+}
+```
+- By avoiding unnecessary use of null, you can prevent NullPointerExceptions and contribute to solving the "billion-dollar problem"
+
+## 33. How to Crash Your JVM
+
+As a Java developer, understanding the environment your software runs in is indeed crucial. It's not just about the libraries and APIs you use, but also about how your software interacts with the system it's running on. Here are some ways you could potentially crash your Java Virtual Machine (JVM):
+
+1. **Exhaust Memory:** Allocate as much memory as you can. RAM is not endless—if no more RAM can be allocated, your allocation will fail, causing the JVM to crash.
+```java
+public class MemoryExhaustion {
+    public static void main(String[] args) {
+        try {
+            long[] memoryFiller = new long[Integer.MAX_VALUE];
+        } catch (OutOfMemoryError e) {
+            System.out.println("Memory exhausted!");
+        }
+    }
+}
+ ```
+2. **Exhaust Disk Space:** Try to write data to your hard disk until it is full. Disk space is not endless either, and if the JVM can't write necessary data to disk, it can crash.
+```java
+import java.io.FileOutputStream;
+import java.io.IOException;
+
+public class DiskSpaceExhaustion {
+    public static void main(String[] args) {
+        try (FileOutputStream fos = new FileOutputStream("largefile.txt")) {
+            byte[] buffer = new byte[1024];
+            while (true) {
+                fos.write(buffer);
+            }
+        } catch (IOException e) {
+            System.out.println("Disk space exhausted!");
+        }
+    }
+}
+```
+3. **Exhaust File Descriptors:** Try to open as many files as you can. There's a limit to the number of file descriptors your system can handle. If you exceed this limit, the JVM can crash.
+
+4. **Exhaust Thread Limit:** Try to create as many threads as you can. There's a limit to the number of threads your system can handle. If you exceed this limit, the JVM can crash.
+
+5. **Modify Class Files:** Try to modify your own .class files in the filesystem while your application is running. This can cause the JVM to crash.
+
+6. **Kill Process:** Try to find your own process ID, and then try to kill it by using `Runtime.exec()` (e.g., by calling `kill -9` on your process ID).
+
+7. **System Exit:** Try to create a class at runtime that only calls `System.exit()`, load that class dynamically via the class loader, then call it.
+
+8. **Exhaust Socket Connections:** Try to open as many socket connections as possible. On a Unix system, the maximum number of possible socket connections equals the maximum number of file descriptors.
+
+9. **Unsafe Operations:** Try using `sun.misc.Unsafe`. This class provides low-level operations that can directly manipulate memory and can easily crash the JVM if used incorrectly.
+
+10. **Native Code:** Write some native code using the Java Native Interface (JNI). Errors in native code can lead to JVM crashes.
+
+
+## 34. Improving Repeatability and Auditability with Continuous Delivery
+- <b>Continuous Delivery</b> (CD) is a method of automating the steps of delivering code to production
+- CD aims to reduce the time and effort required to deploy code
+- CD improves the repeatability of the deployment process by scripting each step for execution by a computer instead of a human
+- This reduces the risk associated with deployments and encourages organizations to release more often and with smaller changesets
+- CD enhances auditability by improving transparency in deployments
+- The scripts used to execute steps and the values supplied to them can be stored in version control, allowing for easy review
+- Automated deployments can generate reports that can help with auditing
+
+## 35. In the Language Wars, Java Holds Its Own
+- Every developer has a preferred programming language, often influenced by comfort level or professional requirements
+- Java, created in 1995, was designed with a C-like syntax and the principle of <b>write once, run anywhere</b> (WORA)
+- Java aimed to simplify complex programming required in C-family languages and achieve platform independence via the Java Virtual Machine (JVM)
+- Common criticisms of Java include larger deployables and verbose syntax, both of which are attributed to its design goals
+- Java's larger deployables are a result of the need to include all dependencies for deployment to ensure platform independence
+- Java's verbose syntax is due to its aim to be more user-friendly by abstracting some low-level details
+- Despite these criticisms, Java is appreciated for its explicitness, wide applicability, and versatility
+- Java's explicitness provides clarity on what is being built and how it's being done
+- Knowledge of Java is beneficial in both business and technical markets
+- Java's versatility allows developers to explore technology in all stacks and areas
+- The diverse market offers many programming language options to fit various business needs
+- Each developer should choose the best language for their specific task
+- Even if Java isn't a developer's primary language, it's considered a valuable skill due to its versatility and wide applicability

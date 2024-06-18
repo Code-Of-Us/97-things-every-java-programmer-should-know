@@ -1081,3 +1081,71 @@ collection are now part of the general landscape of programming languages.
 Though some may view Java as The Establishment, it’s really the mainstream
 that has moved to encompass the space where Java has always been. Underneath
 the veneer of enterprise respectability, Java is still a ’90s kid.
+
+## 41. Java Programming from a JVM Performance Perspective (_Monica Beckwith_)
+
+**Tip #1: Don’t Obsess Over Garbage**
+- Avoid excessive focus on the garbage your application produces.
+- The JVM’s garbage collector (GC) and JIT compiler (C1 and C2) handle memory management and optimizations.
+- Trust the adaptive compiler and use tools for verification when needed.
+
+**Tip #2: Characterize and Validate Your Benchmarks**
+- Properly characterize and validate benchmarking tests.
+- Differences in performance metrics can stem from changes in default GCs (e.g., Parallel GC to G1 GC).
+- Isolate the “unit of test” to avoid interference from other test system components.
+
+**Tip #3: Allocation Size and Rate Still Matter**
+- Monitor GC logs to understand allocation behavior.
+- Large objects may be categorized as “humongous” in G1 GC, affecting allocation efficiency.
+- High allocation rates can overwhelm GC’s marking algorithms and cause issues.
+
+**Tip #4: An Adaptive JVM Is Your Right and You Should Demand It**
+- Utilize adaptive JIT and GC advancements for better performance.
+- Provide feedback to the Java community to drive innovation and improvements in JVM features.
+- Test new features to help enhance the JVM ecosystem.
+
+## 42. Java Should Feel Fun (_Holly Cummins_)
+
+- Fun in programming includes exploration, play, puzzles, games, and satisfying work, all of which Java supports through debugging, learning new features, and more.
+- Tools like Lombok reduce verbosity by generating boilerplate code, and simplifying tasks like auto-instrumenting trace can make coding more enjoyable and error-free.
+- The introduction of lambdas in Java 8 provided new, enjoyable ways to write functional code, combining exploration and the challenge of functional programming.
+- Ensuring code is fun to write and maintainable is crucial; automating tedious tasks and fostering a positive coding environment enhances productivity and developer happiness.
+
+## 43. Java’s Unspeakable Types (_Ben Evans_)
+
+What is _null_?
+
+```java
+String s = null;
+Integer i = null;
+Object o = null;
+```
+The symbol null is a value that can be assigned to any reference type.
+
+Java Language Specification (JLS), in Section 4.1:
+> There is also a special null type, the type of the expression null, which has no name. Because the null type has no name, it is impossible to declare a variable of the null type or to cast to the null type.
+
+Types we cannot declare as the types of variables = **unspeakable types** or _nondenotable types_
+- Multicatch exception parameters in Java 7, which are essentially unions of multiple types.
+- Anonymous classes, where the type cannot be explicitly declared but can still be used via type inference within the same method.
+
+## 44. The JVM Is a Multiparadigm Platform: Use This to Improve Your Programming (_Russel Winder_)
+
+- Java, originally an imperative and object-oriented language, has been used to build large systems using objects, methods, and explicit iteration, often leading to "hacks" to resolve problems.
+-  Java 8 introduced significant changes, including method references, lambda expressions, and higher-order functions, shifting towards a more declarative style of programming.
+- Java evolved into a multiparadigm language, blending object-oriented and functional programming concepts, similar to languages like Scala, which integrate both paradigms.
+- The JVM, initially for web plugins, became a robust platform for various languages, supporting both dynamic (e.g., Groovy, JRuby) and static (e.g., Scala, Kotlin) languages, enhancing Java's ecosystem.
+-  Leveraging the JVM, developers can use the most suitable language for each part of a project, combining static languages like Java and Kotlin with dynamic languages like Clojure and Groovy for optimal results.
+
+## 45. Keep Your Finger on the Pulse (_Trisha Gee_)
+
+= to be aware of the latest things that are happening in a certain industry
+
+**Learning from Peers** \
+Early job experiences emphasized the value of having knowledgeable colleagues to guide through technological changes, a crucial role for senior team members.
+
+**Embracing Evolution** \
+Accept that Java is constantly evolving with new versions, libraries, frameworks, and JVM languages. Staying informed about these changes is essential.
+
+**Continuous Learning** \
+Keep up with Java's frequent updates by staying aware of key trends and focusing on relevant new features and technologies to improve productivity and user experience.

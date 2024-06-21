@@ -1149,3 +1149,216 @@ Accept that Java is constantly evolving with new versions, libraries, frameworks
 
 **Continuous Learning** \
 Keep up with Java's frequent updates by staying aware of key trends and focusing on relevant new features and technologies to improve productivity and user experience.
+
+## 46. Kinds of Comments (_Nicolai Parlog_)
+
+- **Javadoc Comments for Contracts**
+  - Use /** ... */ for classes, interfaces, fields, and methods.
+  - Placed directly above the elements.
+  - Act as a contract for API users and implementers.
+  - Java 8 introduced @apiNote, @implSpec, and @implNote to specify user or implementer guidance.
+
+```java
+    /**
+    * Returns the number of key-value mappings in this map. If the
+    * map contains more than Integer.MAX_VALUE elements, returns
+    * Integer.MAX_VALUE.
+    *
+    * @return the number of key-value mappings in this map
+    */
+    int size();
+```
+
+- **Block Comments for Context**
+  - Enclosed in /* ... */ with no placement restrictions.
+  - Commonly used at the beginning of classes or methods.
+  - Provide implementation details or context (why the code was written a certain way).
+
+```java
+    /*
+     * Implementation notes.
+     *
+     * This map usually acts as a binned (bucketed) hash table,
+     * but when bins get too large, they are transformed into bins
+     * of TreeNodes, each structured similarly to those in
+     * java.util.TreeMap.
+     * [...]
+     */
+```
+
+- **Line Comments for Weird Things**
+  - Start with // and must be repeated on every line.
+  - Commonly placed above the line or block of code.
+  - Useful for explaining code that uses unusual language features or is prone to subtle issues.
+  
+- **Last Words**
+  - Make sure to pick the right kind of comment.
+  - Don’t break expectations.
+  - Comment your &#!*@$ code!
+    https://nipafx.dev/talk-comment-your-code/
+
+## 47. Know Thy flatMap (_Daniel Hinojosa_)
+
+- Works with containers like Stream<T>, CompletableFuture<T>, Observable<T> (RXJava), and Flux<T> (Project Reactor).
+
+### Usage and Limitations of map
+- **Usage**: Applies a function to each element in a stream or collection.
+  - Example: `Stream.of(1, 2, 3, 4).map(x -> x * 2).toList()` 
+  - produces `[2, 4, 6, 8]`.
+  
+- **Limitations**: Using map with a plural creates a list of streams.
+  - Example: `Stream.of(1, 2, 3, 4).map(x -> Stream.of(-x, x, x + 1)).toList()` 
+  - produces streams of references.
+```text
+     [java.util.stream.ReferencePipeline$Head@3532ec19,
+      java.util.stream.ReferencePipeline$Head@68c4039c,
+      java.util.stream.ReferencePipeline$Head@ae45eb6,
+      java.util.stream.ReferencePipeline$Head@59f99ea]
+```
+
+### Using flatMap
+- Converts each element into multiple elements in a single stream.
+  - Example: `Stream.of(1, 2, 3, 4).flatMap(x -> Stream.of(-x, x, x + 1)).toList()`
+  - produces `[-1, 1, 2, -2, 2, 3, -3, 3, 4, -4, 4, 5]`.
+
+### Advanced flatMap Example
+- Given a Stream<Manager>, determine all employees' salaries including managers and their employees.
+- Code:
+  ```java
+     List.of(manager1, manager2).stream()
+       .flatMap(m -> Stream.concat(m.getEmployeeList().stream(), Stream.of(m)))
+       .distinct()
+       .mapToInt(Employee::getYearlySalary)
+       .sum();
+  ```
+
+### General Advice
+- Use map, filter, flatMap, or groupBy for data processing.
+- Avoid premature use of terminal operations like forEach or collect to maintain stream laziness and optimization benefits.
+
+## 48. Know Your Collections (_Nikhil Nanivadekar_)
+
+| **Collection** | **Sortable** | **Orderable** | **Allows Duplicates** | **Details**                                               |
+|----------------|--------------|---------------|-----------------------|-----------------------------------------------------------|
+| **ArrayList**  | No           | Yes           | Yes                   | List implementation, predictable iteration order, O(n) contains operation |
+| **LinkedList** | No           | Yes           | Yes                   | List implementation, predictable iteration order, O(n) contains operation |
+| **HashMap**    | No           | No            | N/A                   | Map implementation, unique keys, O(1) key lookup, O(n) value lookup |
+| **LinkedHashMap** | No           | Yes           | N/A                   | Map implementation, maintains insertion order, unique keys, O(1) key lookup |
+| **TreeMap**    | Yes          | Yes           | N/A                   | Map implementation, keys sorted by comparator or natural order, O(log n) operations |
+| **HashSet**    | No           | No            | No                    | Set implementation, backed by HashMap, unique elements, O(1) contains operation |
+| **LinkedHashSet** | No           | Yes           | No                    | Set implementation, maintains insertion order, unique elements, O(1) contains operation |
+| **TreeSet**    | Yes          | Yes           | No                    | Set implementation, backed by TreeMap, elements sorted by comparator or natural order, O(log n) contains operation |
+
+
+## 49. Kotlin Is a Thing (_Mike Dunn_)
+- **Kotlin Overview**
+  - Kotlin is designed to be interoperable with Java and allows writing shorter, cleaner, and more modern code.
+
+
+- **Java vs. Kotlin Examples**
+  - **Java Model Example**:
+    ```java
+    public class Person {
+      private String name;
+      private Integer age;
+      // getters and setters
+    }
+    public class Person {
+      public Person(String name, Integer age) {
+        this.name = name;
+        this.age = age;
+      }
+      // getters and setters
+    }
+    ```
+  - **Kotlin Model Example**:
+    ```kotlin
+    class Person(val name: String, var age: Int)
+    ```
+
+- **Delegation**
+  - **Java Lazy Initialization**:
+    ```java
+    public class SomeClass {
+      private SomeHeavyInstance someHeavyInstance = null;
+      public SomeHeavyInstance getSomeHeavyInstance() {
+        if (someHeavyInstance == null) {
+          someHeavyInstance = new SomeHeavyInstance();
+        }
+        return someHeavyInstance;
+      }
+    }
+    ```
+  - **Kotlin Lazy Initialization**:
+    ```kotlin
+    val someHeavyInstance by lazy {
+      SomeHeavyInstance()
+    }
+    ```
+
+- **Null Safety**
+  - **Java Null Checks**:
+    ```java
+    Object something = null;
+    if (someObject != null) {
+      if (someObject.someMember != null) {
+        if (someObject.someMember.anotherMember != null) {
+          something = someObject.someMember.anotherMember;
+        }
+      }
+    }
+    ```
+  - **Kotlin Null Safety**:
+    ```kotlin
+    val something = someObject?.someMember?.anotherMember
+    ```
+ + many more :) 
+
+## 50. Learn Java Idioms and Cache in Your Brain (_Jeanne Boyarsky_)
+
+### Summary of "Learn Java Idioms and Cache in Your Brain" by Jeanne Boyarsky
+
+- Common ways of expressing functionality that have general community agreement. Knowing idioms helps write code faster.
+
+ - **Loop Implementation**:
+    ```java
+    public int loopImplementation(int[] nums) {
+      int count = 0;
+      for (int num : nums) {
+        if (num > 0) {
+          count++;
+        }
+      }
+      return count;
+    }
+    ```
+  - **Stream Implementation**:
+    ```java
+    public long streamImplementation(int[] nums) {
+      return Arrays.stream(nums)
+                   .filter(n -> n > 0)
+                   .count();
+    }
+    ```
+
+- **Importance of Learning Idioms**:
+  - Familiarity with idioms like looping, conditions, and streams enhances coding speed.
+  - Practicing these patterns helps internalize them.
+
+
+  - Reads a file, removes blank lines, writes it back:
+    ```java
+    Path path = Paths.get("words.txt");
+    List<String> lines = Files.readAllLines(path);
+    lines.removeIf(t -> t.trim().isEmpty());
+    Files.write(path, lines);
+    ```
+  - Easy to modify conditions (e.g., changing `removeIf` to remove lines longer than 60 characters).
+  - Focus on what to accomplish, not how to read/write files.
+  - Idioms often learned through frequent use rather than intentional study.
+  - Repetition aids memory or at least helps in knowing where to find information.
+
+
+- **Conclusion**:
+  - Treat your brain as a cache for idioms and common library calls.
+  - This efficiency allows focus on more complex tasks.
